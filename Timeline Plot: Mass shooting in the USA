@@ -1,0 +1,47 @@
+# function to prep the data to feed into Plot.ly
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+# Calculate total victims, injured, fatalities numbers and pass to "accumulate_by" function 
+vic_yr<-melt(aggregate(cbind(Total.victims,Injured,Fatalities)
+            ~incidentyear,df,FUN =sum),id.vars="incidentyear")%>%
+       accumulate_by(~incidentyear)
+
+# Plot the dataframe
+p<-vic_yr %>%
+  plot_ly(
+    x = ~incidentyear, 
+    y = ~value,
+    split = ~variable,
+    frame = ~frame, 
+    type = 'scatter',
+    mode = 'lines', 
+    line = list(simplyfy = F)
+    ) %>% 
+    layout(title = "Timeline of Mass Shootings in the USA",
+    xaxis = list(title = "Year",zeroline = F),
+    yaxis = list(title = "",zeroline = F)
+    ) %>% 
+    animation_opts(
+    frame = 100, 
+    transition = 0, 
+    redraw = FALSE
+    ) %>%
+    animation_slider(
+    hide = T
+    ) %>%
+    animation_button(
+    x = 0.5, xanchor = "right", y = 1, yanchor = "middle"
+    )
+
+# print
+ p
+
+# Save the file in your Plot.ly account
+# api_create(p, filename="Timeline Plot: Mass shooting in the USA")
