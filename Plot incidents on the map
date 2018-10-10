@@ -1,0 +1,61 @@
+# function to get State names from Lat & Long data
+latlong2state <- function(pointsDF) {
+    # Prepare SpatialPolygons object with one SpatialPolygon
+    # per state (plus DC, minus HI & AK)
+    states <- map('state', fill=TRUE, col="transparent", plot=FALSE)
+    IDs <- sapply(strsplit(states$names, ":"), function(x) x[1])
+    states_sp <- map2SpatialPolygons(states, IDs=IDs,
+                     proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+    # Convert pointsDF to a SpatialPoints object 
+    pointsSP <- SpatialPoints(pointsDF, 
+                    proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+    # Use:over to get indices of the Polygons containing each point 
+    indices <- over(pointsSP, states_sp)
+
+    # Return the state names of the Polygons containing each point
+    stateNames <- sapply(states_sp@polygons, function(x) x@ID)
+    stateNames[indices]}
+
+# df should be numeric
+df1<-df[,c(21:20)]  
+
+# remove NA
+df1[is.na(df1)]<-0  
+
+# combine with rest of the dataframe
+df<-data.frame(df,latlong2state(df1)) 
+
+# rename new column
+names(df)[names(df)=="latlong2state.df1."]<-"State"
+
+# aggregate by State
+df2<-aggregate(cbind(Total.victims,Injured,Fatalities)~State,df,FUN = sum)
+
+# create a column with 2 digit state 'Code' to plot
+df2$Code<-state.abb[match(df2$State,tolower(state.name))]
+
+# hover for plot
+df2$hover <- with(df2, paste(State, '<br>', "Fatalities", Fatalities,"<br>", "Injured", Injured, "<br>","Total Victims", Total.victims))
+
+# give state boundaries a white border
+l <- list(color = toRGB("white"), width = 2)
+# specify some map projection/options
+g <- list(scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white'))
+
+# Plot the dataframe
+p <- plot_geo(df2, locationmode = 'USA-states') %>%
+      add_trace(z = ~Total.victims, text = ~hover, locations = ~Code,
+      color = ~Total.victims, colors = 'Reds') %>%
+      colorbar(title = "No.of Victims") %>%
+      layout( title = 'Geography of Mass Shootings in last 50 years <br>(Hover for breakdown)',geo = g) 
+
+# Print
+p
+
+# Save the file in your Plot.ly account
+# api_create(p, filename="Geography of Mass Shootings in last 50 years")
