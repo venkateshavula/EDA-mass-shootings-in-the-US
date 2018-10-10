@@ -36,7 +36,7 @@ df2<-aggregate(cbind(Total.victims,Injured,Fatalities)~State,df,FUN = sum)
 # create a column with 2 digit state 'Code' to plot
 df2$Code<-state.abb[match(df2$State,tolower(state.name))]
 
-# hover for plot
+# Hover for plot
 df2$hover <- with(df2, paste(State, '<br>', "Fatalities", Fatalities,"<br>", "Injured", Injured, "<br>","Total Victims", Total.victims))
 
 # give state boundaries a white border
