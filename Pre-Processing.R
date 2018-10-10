@@ -31,5 +31,5 @@ table(df$Race)
 df$Age_n<-as.numeric(levels(df$Age))[df$Age]
 df$Age_n<-ifelse(is.na(df$Age_n),mean(df$Age_n,na.rm = TRUE),df$Age_n)
 
-# fix the Date format and Extract year & month
+# Fix the Date format and Extract year & month
 df<-df%>%mutate(Date = as.Date(Date, '%m/%d/%Y'),incidentyear=year(Date),incidentmonth=month(Date))
