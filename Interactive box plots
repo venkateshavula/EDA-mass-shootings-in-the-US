@@ -1,0 +1,16 @@
+# reshape the dataframe for plots
+df1<-melt(df[,c(22,18)],id.vars = "Race")
+
+# Boxplots
+p<-ggplot(data = df1, aes(x = Race, y = value)) +
+          geom_boxplot(aes(col = Race,fill=Race)) + 
+          ggtitle("Box plot: Race & Age of the shooter") +
+          labs(x = "Race", y = "Age") +
+          theme(axis.text.x =element_text(angle=0,size=9,color='black',hjust=1),
+                          legend.position="Right")
+
+# Print
+# ggplotly(p)
+
+# Save the file in your Plot.ly account
+# api_create(ggplotly(p), filename="Box Plots: Age & Race of the Shooter")
